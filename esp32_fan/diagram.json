@@ -1,0 +1,73 @@
+{
+  "version": 1,
+  "author": "Smart Fan IoT Demo",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "wokwi-esp32-devkit-v1",
+      "id": "esp",
+      "top": 20,
+      "left": 20,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": 20,
+      "left": 250,
+      "attrs": { "value": "220" },
+      "rotate": 90
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led1",
+      "top": 20,
+      "left": 290,
+      "attrs": { "color": "blue", "label": "LOW" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r2",
+      "top": 80,
+      "left": 250,
+      "attrs": { "value": "220" },
+      "rotate": 90
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led2",
+      "top": 80,
+      "left": 290,
+      "attrs": { "color": "yellow", "label": "MED" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r3",
+      "top": 140,
+      "left": 250,
+      "attrs": { "value": "220" },
+      "rotate": 90
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led3",
+      "top": 140,
+      "left": 290,
+      "attrs": { "color": "red", "label": "HIGH" }
+    }
+  ],
+  "connections": [
+    [ "esp:25",    "r1:1", "blue",   [] ],
+    [ "r1:2",      "led1:A", "blue", [] ],
+    [ "led1:K",    "esp:GND.1", "black", [] ],
+
+    [ "esp:26",    "r2:1", "yellow",   [] ],
+    [ "r2:2",      "led2:A", "yellow", [] ],
+    [ "led2:K",    "esp:GND.1", "black", [] ],
+
+    [ "esp:27",    "r3:1", "red",   [] ],
+    [ "r3:2",      "led3:A", "red", [] ],
+    [ "led3:K",    "esp:GND.1", "black", [] ]
+  ],
+  "dependencies": {}
+}
