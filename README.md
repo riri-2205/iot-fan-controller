@@ -41,7 +41,7 @@ smart_fan_final/
 ### Step 1 — Install dependencies
 
 ```bash
-cd smart_fan_final
+cd iot_fan_controller
 pip install -r requirements.txt
 ```
 
