@@ -22,6 +22,7 @@ state = {
     "temperature": 25.0,
     "hour": 12,
     "time_of_day": "day",
+    "is_occupied": False,
     "mqtt_connected": False,
     "last_decision": None,
 }
@@ -70,6 +71,7 @@ def auto_control_loop():
         state["temperature"] = env.temperature
         state["hour"] = env.hour
         state["time_of_day"] = env.time_label
+        state["is_occupied"] = env.is_occupied
         state["last_decision"] = result
         new_speed = result["final_speed"]
         send_speed(new_speed, mode="auto")
