@@ -1,0 +1,94 @@
+#include <WiFi.h>
+#include <PubSubClient.h>
+#include <ArduinoJson.h>
+
+// WiFi - Wokwi virtual network
+const char* WIFI_SSID = "Wokwi-GUEST";
+const char* WIFI_PASSWORD = "";
+
+// MQTT Broker
+const char* MQTT_BROKER = "broker.hivemq.com";
+const int   MQTT_PORT   = 1883;
+const char* MQTT_TOPIC  = "iot/smartfan/control";
+
+// LED Pins
+const int LED_LOW    = 2;
+const int LED_MEDIUM = 4;
+const int LED_HIGH   = 5;
+
+WiFiClient   wifiClient;
+PubSubClient mqttClient(wifiClient);
+
+void setLEDs(bool l1, bool l2, bool l3) {
+  digitalWrite(LED_LOW,    l1 ? HIGH : LOW);
+  digitalWrite(LED_MEDIUM, l2 ? HIGH : LOW);
+  digitalWrite(LED_HIGH,   l3 ? HIGH : LOW);
+}
+
+void applySpeed(String speed) {
+  Serial.println("Fan speed: " + speed);
+  if      (speed == "OFF")    { setLEDs(0,0,0); }
+  else if (speed == "LOW")    { setLEDs(1,0,0); }
+  else if (speed == "MEDIUM") { setLEDs(1,1,0); }
+  else if (speed == "HIGH")   { setLEDs(1,1,1); }
+}
+
+void onMessage(char* topic, byte* payload, unsigned int length) {
+  String raw = "";
+  for (int i = 0; i < length; i++) raw += (char)payload[i];
+  Serial.println("Received: " + raw);
+
+  StaticJsonDocument<256> doc;
+  DeserializationError err = deserializeJson(doc, raw);
+  if (err) {
+    Serial.println("JSON error!");
+    return;
+  }
+
+  String speed = doc["speed"] | "OFF";
+  applySpeed(speed);
+}
+
+void connectWiFi() {
+  Serial.print("Connecting to WiFi");
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nWiFi connected!");
+}
+
+void connectMQTT() {
+  while (!mqttClient.connected()) {
+    Serial.println("Connecting to MQTT...");
+    if (mqttClient.connect("esp32-smartfan")) {
+      Serial.println("MQTT connected!");
+      mqttClient.subscribe(MQTT_TOPIC);
+      Serial.println("Subscribed to: iot/smartfan/control");
+    } else {
+      Serial.println("Failed. Retrying in 3s...");
+      delay(3000);
+    }
+  }
+}
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(LED_LOW,    OUTPUT);
+  pinMode(LED_MEDIUM, OUTPUT);
+  pinMode(LED_HIGH,   OUTPUT);
+  setLEDs(0, 0, 0);
+
+  connectWiFi();
+  mqttClient.setServer(MQTT_BROKER, MQTT_PORT);
+  mqttClient.setCallback(onMessage);
+  connectMQTT();
+
+  Serial.println("Ready! Waiting for commands...");
+}
+
+void loop() {
+  if (!mqttClient.connected()) connectMQTT();
+  mqttClient.loop();
+}

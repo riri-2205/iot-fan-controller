@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "author": "SmartFan",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "id": "esp",
+      "type": "wokwi-esp32-devkit-v1",
+      "top": 0,
+      "left": 100,
+      "attrs": {}
+    },
+    {
+      "id": "led1",
+      "type": "wokwi-led",
+      "top": 200,
+      "left": 0,
+      "attrs": { "color": "blue", "label": "LOW" }
+    },
+    {
+      "id": "led2",
+      "type": "wokwi-led",
+      "top": 200,
+      "left": 60,
+      "attrs": { "color": "green", "label": "MEDIUM" }
+    },
+    {
+      "id": "led3",
+      "type": "wokwi-led",
+      "top": 200,
+      "left": 120,
+      "attrs": { "color": "red", "label": "HIGH" }
+    },
+    {
+      "id": "r1",
+      "type": "wokwi-resistor",
+      "top": 280,
+      "left": 0,
+      "attrs": { "value": "220" }
+    },
+    {
+      "id": "r2",
+      "type": "wokwi-resistor",
+      "top": 280,
+      "left": 60,
+      "attrs": { "value": "220" }
+    },
+    {
+      "id": "r3",
+      "type": "wokwi-resistor",
+      "top": 280,
+      "left": 120,
+      "attrs": { "value": "220" }
+    }
+  ],
+  "connections": [
+    ["esp:D2",  "led1:A", "blue",  []],
+    ["esp:D4",  "led2:A", "green", []],
+    ["esp:D5",  "led3:A", "red",   []],
+    ["led1:C",  "r1:1",   "gray",  []],
+    ["led2:C",  "r2:1",   "gray",  []],
+    ["led3:C",  "r3:1",   "gray",  []],
+    ["r1:2",    "esp:GND.1", "black", []],
+    ["r2:2",    "esp:GND.1", "black", []],
+    ["r3:2",    "esp:GND.1", "black", []]
+  ]
+}

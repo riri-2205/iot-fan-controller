@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Fan Control</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #0f1117;
+    color: #e0e0e0;
+    margin: 0;
+    padding: 20px;
+  }
+  h1 {
+    text-align: center;
+    color: #00d8f0;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    text-align: center;
+    color: #546e7a;
+    font-size: 13px;
+    margin-bottom: 30px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .card {
+    background: #1a1d27;
+    border: 1px solid #2a2d3a;
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .card h2 {
+    font-size: 12px;
+    color: #546e7a;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+  }
+  .speed-display {
+    text-align: center;
+    padding: 10px 0;
+  }
+  #bigSpeed {
+    font-size: 52px;
+    font-weight: bold;
+    color: #455a64;
+    transition: all 0.4s;
+  }
+  #modeLabel {
+    font-size: 12px;
+    color: #546e7a;
+    margin-top: 8px;
+  }
+  .mode-toggle {
+    display: flex;
+    border: 1px solid #2a2d3a;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+  .mode-btn {
+    flex: 1;
+    padding: 10px;
+    background: none;
+    border: none;
+    color: #546e7a;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .mode-btn.active {
+    background: #00d8f0;
+    color: #0f1117;
+    font-weight: bold;
+  }
+  .speed-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .spd-btn {
+    padding: 14px 4px;
+    border-radius: 8px;
+    border: 1px solid #2a2d3a;
+    background: none;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .spd-btn:hover { transform: translateY(-2px); }
+  .spd-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+  #btn-OFF    { color: #455a64; border-color: #455a64; }
+  #btn-LOW    { color: #40c4ff; border-color: #40c4ff; }
+  #btn-MEDIUM { color: #ffd740; border-color: #ffd740; }
+  #btn-HIGH   { color: #ff5252; border-color: #ff5252; }
+  #btn-OFF.active    { background: #455a64; color: white; }
+  #btn-LOW.active    { background: #40c4ff; color: black; }
+  #btn-MEDIUM.active { background: #ffd740; color: black; }
+  #btn-HIGH.active   { background: #ff5252; color: white; }
+  .env-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .env-item {
+    background: #0f1117;
+    border: 1px solid #2a2d3a;
+    border-radius: 8px;
+    padding: 12px;
+  }
+  .env-label {
+    font-size: 11px;
+    color: #546e7a;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  .env-value {
+    font-size: 22px;
+    font-weight: bold;
+    color: #00d8f0;
+  }
+  .led-row {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    margin: 10px 0;
+  }
+  .led-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+  }
+  .led {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #1a2830;
+    border: 1px solid #2a3540;
+    transition: all 0.4s;
+  }
+  .led.on-blue  { background: #40c4ff; box-shadow: 0 0 12px #40c4ff; }
+  .led.on-green { background: #69f0ae; box-shadow: 0 0 12px #69f0ae; }
+  .led.on-red   { background: #ff5252; box-shadow: 0 0 12px #ff5252; }
+  .led-label { font-size: 11px; color: #546e7a; }
+  .led-map {
+    margin-left: auto;
+    font-size: 11px;
+    color: #546e7a;
+    line-height: 1.8;
+  }
+  .log-panel {
+    grid-column: 1 / -1;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  .log-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .log-entry {
+    display: flex;
+    gap: 10px;
+    font-size: 12px;
+    font-family: monospace;
+    padding: 5px 8px;
+    border-radius: 4px;
+    background: #0f1117;
+    margin-bottom: 3px;
+  }
+  .log-ts   { color: #546e7a; flex-shrink: 0; }
+  .log-info { color: #00d8f0; }
+  .log-warning { color: #ffd740; }
+  .mqtt-status {
+    text-align: center;
+    font-size: 12px;
+    color: #546e7a;
+    margin-bottom: 20px;
+  }
+  .dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #455a64;
+    margin-right: 5px;
+  }
+  .dot.connected { background: #69f0ae; box-shadow: 0 0 6px #69f0ae; }
+  .full { grid-column: 1 / -1; }
+  .agent-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .agent-table th {
+    text-align: left;
+    color: #546e7a;
+    font-size: 11px;
+    padding: 4px 8px 8px;
+    border-bottom: 1px solid #2a2d3a;
+  }
+  .agent-table td {
+    padding: 7px 8px;
+    border-bottom: 1px solid #0f1117;
+    color: #b0bec5;
+  }
+</style>
+</head>
+<body>
+
+<h1>🌀 Smart Fan Control</h1>
+<p class="subtitle">IoT Multi-Agent System — Wi-Fi Ceiling Fan Controller</p>
+<div class="mqtt-status">
+  <span class="dot" id="mqttDot"></span>
+  <span id="mqttLabel">Connecting to MQTT broker...</span>
+</div>
+
+<div class="grid">
+
+  <!-- Current Speed -->
+  <div class="card">
+    <h2>Current Fan State</h2>
+    <div class="speed-display">
+      <div id="bigSpeed">OFF</div>
+      <div id="modeLabel">MODE: MANUAL</div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="card">
+    <h2>Control Panel</h2>
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="btnManual" onclick="setMode('manual')">MANUAL</button>
+      <button class="mode-btn"        id="btnAuto"   onclick="setMode('auto')">AUTO (AI)</button>
+    </div>
+    <div class="speed-grid">
+      <button class="spd-btn active" id="btn-OFF"    onclick="setSpeed('OFF')">OFF</button>
+      <button class="spd-btn"        id="btn-LOW"    onclick="setSpeed('LOW')">LOW</button>
+      <button class="spd-btn"        id="btn-MEDIUM" onclick="setSpeed('MEDIUM')">MEDIUM</button>
+      <button class="spd-btn"        id="btn-HIGH"   onclick="setSpeed('HIGH')">HIGH</button>
+    </div>
+  </div>
+
+  <!-- Environment -->
+  <div class="card">
+    <h2>Environment (Simulated Sensors)</h2>
+    <div class="env-grid">
+      <div class="env-item">
+        <div class="env-label">Temperature</div>
+        <div class="env-value" id="tempVal">--°C</div>
+      </div>
+      <div class="env-item">
+        <div class="env-label">Time of Day</div>
+        <div class="env-value" id="todVal">--</div>
+      </div>
+      <div class="env-item">
+        <div class="env-label">Hour</div>
+        <div class="env-value" id="hourVal">--:00</div>
+      </div>
+      <div class="env-item">
+        <div class="env-label">Last Update</div>
+        <div class="env-value" id="tsVal" style="font-size:14px">--</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LED Simulator -->
+  <div class="card">
+    <h2>Simulated Hardware (ESP32 LEDs)</h2>
+    <div class="led-row">
+      <div class="led-block">
+        <div class="led" id="led1"></div>
+        <div class="led-label">LOW</div>
+      </div>
+      <div class="led-block">
+        <div class="led" id="led2"></div>
+        <div class="led-label">MED</div>
+      </div>
+      <div class="led-block">
+        <div class="led" id="led3"></div>
+        <div class="led-label">HIGH</div>
+      </div>
+      <div class="led-map">
+        OFF  → ○ ○ ○<br>
+        LOW  → ● ○ ○<br>
+        MED  → ● ● ○<br>
+        HIGH → ● ● ●
+      </div>
+    </div>
+    <p style="font-size:11px;color:#546e7a;margin-top:10px">
+      These LEDs represent what an ESP32 microcontroller would show in Wokwi simulation.
+    </p>
+  </div>
+
+  <!-- AI Agent Decisions -->
+  <div class="card full">
+    <h2>AI Agent Decisions (Auto Mode)</h2>
+    <table class="agent-table" id="agentTable">
+      <thead>
+        <tr><th>Agent</th><th>Vote</th><th>Reason</th></tr>
+      </thead>
+      <tbody id="agentBody">
+        <tr><td colspan="3" style="color:#546e7a;text-align:center;padding:16px">
+          Switch to AUTO mode to see AI decisions...
+        </td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- System Log -->
+  <div class="card log-panel full">
+    <h2>System Log</h2>
+    <ul class="log-list" id="logList"></ul>
+  </div>
+
+</div>
+
+<script>
+  const SPEED_COLORS = {
+    OFF: '#455a64',
+    LOW: '#40c4ff',
+    MEDIUM: '#ffd740',
+    HIGH: '#ff5252'
+  };
+
+  let currentMode = 'manual';
+
+  function addLog(level, message) {
+    const ul = document.getElementById('logList');
+    const li = document.createElement('li');
+    li.className = 'log-entry';
+    const ts = new Date().toLocaleTimeString();
+    li.innerHTML = `<span class="log-ts">${ts}</span><span class="log-${level}">${message}</span>`;
+    ul.prepend(li);
+    while (ul.children.length > 40) ul.removeChild(ul.lastChild);
+  }
+
+  function updateSpeedUI(spd) {
+    const el = document.getElementById('bigSpeed');
+    el.textContent = spd;
+    el.style.color = SPEED_COLORS[spd] || '#455a64';
+
+    ['OFF','LOW','MEDIUM','HIGH'].forEach(s => {
+      const btn = document.getElementById('btn-' + s);
+      if (btn) btn.classList.toggle('active', s === spd);
+    });
+
+    const levels = { OFF: 0, LOW: 1, MEDIUM: 2, HIGH: 3 };
+    const lvl = levels[spd] || 0;
+    document.getElementById('led1').className = 'led' + (lvl >= 1 ? ' on-blue' : '');
+    document.getElementById('led2').className = 'led' + (lvl >= 2 ? ' on-green' : '');
+    document.getElementById('led3').className = 'led' + (lvl >= 3 ? ' on-red' : '');
+  }
+
+  function updateModeUI(mode) {
+    currentMode = mode;
+    document.getElementById('btnManual').classList.toggle('active', mode === 'manual');
+    document.getElementById('btnAuto').classList.toggle('active', mode === 'auto');
+    document.getElementById('modeLabel').textContent = 'MODE: ' + mode.toUpperCase();
+    ['OFF','LOW','MEDIUM','HIGH'].forEach(s => {
+      const btn = document.getElementById('btn-' + s);
+      if (btn) btn.disabled = (mode === 'auto');
+    });
+  }
+
+  function updateAgents(decision) {
+    if (!decision || !decision.agent_log) return;
+    const tbody = document.getElementById('agentBody');
+    tbody.innerHTML = decision.agent_log.map(e => `
+      <tr>
+        <td>${e.agent}</td>
+        <td style="color:${SPEED_COLORS[e.vote] || '#546e7a'};font-weight:bold">${e.vote}</td>
+        <td>${e.reason}</td>
+      </tr>
+    `).join('');
+  }
+
+  async function setSpeed(spd) {
+    if (currentMode !== 'manual') return;
+    try {
+      await fetch('/api/set_speed', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ speed: spd })
+      });
+    } catch(e) {
+      addLog('warning', 'Could not reach server');
+    }
+  }
+
+  async function setMode(mode) {
+    try {
+      await fetch('/api/set_mode', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ mode: mode })
+      });
+    } catch(e) {
+      addLog('warning', 'Could not reach server');
+    }
+  }
+
+  let lastLogTs = null;
+
+  async function poll() {
+    try {
+      const res = await fetch('/api/status');
+      const data = await res.json();
+      const s = data.state;
+
+      document.getElementById('mqttDot').className = 'dot' + (s.mqtt_connected ? ' connected' : '');
+      document.getElementById('mqttLabel').textContent = s.mqtt_connected ? 'MQTT Connected ✓' : 'MQTT Offline (Simulation Mode)';
+
+      updateSpeedUI(s.current_speed);
+      updateModeUI(s.mode);
+
+      if (s.temperature) {
+        document.getElementById('tempVal').textContent = s.temperature.toFixed(1) + '°C';
+        document.getElementById('todVal').textContent = (s.time_of_day || '--').toUpperCase();
+        document.getElementById('hourVal').textContent = String(s.hour || 0).padStart(2,'0') + ':00';
+        document.getElementById('tsVal').textContent = new Date().toLocaleTimeString();
+      }
+
+      if (s.last_decision) updateAgents(s.last_decision);
+
+      if (data.logs && data.logs.length > 0) {
+        const newest = data.logs[0];
+        if (newest.ts !== lastLogTs) {
+          data.logs.slice(0, 5).reverse().forEach(l => addLog(l.level, l.message));
+          lastLogTs = newest.ts;
+        }
+      }
+    } catch(e) {
+      document.getElementById('mqttLabel').textContent = 'Server not running...';
+    }
+  }
+
+  setInterval(poll, 2000);
+  poll();
+  addLog('info', 'Dashboard loaded. Waiting for server...');
+</script>
+</body>
+</html>
