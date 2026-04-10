@@ -266,6 +266,10 @@
         <div class="env-value" id="hourVal">--:00</div>
       </div>
       <div class="env-item">
+        <div class="env-label">Occupied</div>
+        <div class="env-value" id="occVal">--</div>
+      </div>
+      <div class="env-item">
         <div class="env-label">Last Update</div>
         <div class="env-value" id="tsVal" style="font-size:14px">--</div>
       </div>
@@ -426,6 +430,10 @@
         document.getElementById('tempVal').textContent = s.temperature.toFixed(1) + '°C';
         document.getElementById('todVal').textContent = (s.time_of_day || '--').toUpperCase();
         document.getElementById('hourVal').textContent = String(s.hour || 0).padStart(2,'0') + ':00';
+        const occupied = s.occupied !== undefined
+          ? s.occupied
+          : s.last_decision?.environment?.occupied;
+        document.getElementById('occVal').textContent = occupied === true ? 'Occupied' : occupied === false ? 'Empty' : '--';
         document.getElementById('tsVal').textContent = new Date().toLocaleTimeString();
       }
 
